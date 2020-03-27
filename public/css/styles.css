@@ -103,9 +103,9 @@ a {
   margin-bottom: 15px;
   background-color: var(--light-color);
   border-radius: 5px;
-  width: 70%;
+  max-width: 70%;
   margin-right: auto;
-  height: fit-content;
+  width: fit-content;
 }
 
 .chat-messages .message.my-msg {
