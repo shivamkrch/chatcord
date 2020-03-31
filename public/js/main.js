@@ -4,6 +4,28 @@ const roomNameEls = document.querySelectorAll(".room-name");
 const roomUsersEl = document.querySelector("#users");
 const userCountEls = document.querySelectorAll(".user-count");
 const chatSidebar = document.querySelector(".chat-sidebar");
+const notifyAudio = document.getElementById("notify");
+
+let unread = 0,
+  defaultTitle = "";
+
+// Get username and room from URL
+const userDetails = Qs.parse(location.search, {
+  ignoreQueryPrefix: true
+});
+
+Notification.requestPermission();
+
+document.onload = () => {
+  document.getElementById("msg").focus();
+};
+
+document.onvisibilitychange = () => {
+  if (document.visibilityState === "visible") {
+    unread = 0;
+    document.title = userDetails.room + " Room";
+  }
+};
 
 document.getElementById("side-bar-opener").addEventListener("click", () => {
   if (!chatSidebar.classList.contains("show")) {
@@ -11,11 +33,6 @@ document.getElementById("side-bar-opener").addEventListener("click", () => {
   } else {
     chatSidebar.classList.remove("show");
   }
-});
-
-// Get username and room from URL
-const userDetails = Qs.parse(location.search, {
-  ignoreQueryPrefix: true
 });
 
 const socket = io();
@@ -30,10 +47,24 @@ socket.on("roomUsers", ({ room, users }) => {
 });
 
 socket.on("message", message => {
+  if (document.getElementById("typing")) {
+    clearTimeout(timer);
+    chatMessagesDiv.removeChild(document.getElementById("typing"));
+  }
   outputMessage(message);
-
   // Scroll to bottom
   chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+
+  if (message.username !== userDetails.username) {
+    notifyAudio.play();
+  }
+
+  // Notify
+  if (document.visibilityState === "hidden") {
+    unread++;
+    document.title = `(${unread}) ${defaultTitle}`;
+    pushNotification(message);
+  }
 });
 
 let timer;
@@ -66,6 +97,8 @@ chatForm.addEventListener("submit", e => {
   e.preventDefault();
 
   const msgInput = e.target.elements.msg;
+
+  if (msgInput.value == "") return;
 
   // Emit message to server
   socket.emit("chatMessage", msgInput.value);
@@ -103,7 +136,7 @@ function outputRoomName(room) {
     el.textContent = room;
   });
 
-  document.title = room + " Room";
+  document.title = defaultTitle = room + " Room";
 }
 
 function outputRoomUsers(users) {
@@ -122,3 +155,21 @@ function outputRoomUsers(users) {
       .join("")}
   `;
 }
+let notification;
+const pushNotification = ({ username, text }) => {
+  if (Notification.permission === "granted") {
+    if (notification) console.log(notification);
+    notification = new Notification(
+      `Message from ${username}@${userDetails.room}`,
+      {
+        body: text,
+        badge: "./favicon.png",
+        icon: "./favicon.png",
+        data: {
+          username,
+          text
+        }
+      }
+    );
+  }
+};
