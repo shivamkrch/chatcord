@@ -136,7 +136,7 @@ function outputRoomName(room) {
     el.textContent = room;
   });
 
-  document.title = defaultTitle = room + " Room";
+  document.title = defaultTitle = `${userDetails.username}@room | ChatCord`;
 }
 
 function outputRoomUsers(users) {
