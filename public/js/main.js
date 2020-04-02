@@ -136,7 +136,7 @@ function outputRoomName(room) {
     el.textContent = room;
   });
 
-  document.title = defaultTitle = `${userDetails.username}@room | ChatCord`;
+  document.title = defaultTitle = `${userDetails.username}@${room} Room | ChatCord`;
 }
 
 function outputRoomUsers(users) {
@@ -158,7 +158,6 @@ function outputRoomUsers(users) {
 let notification;
 const pushNotification = ({ username, text }) => {
   if (Notification.permission === "granted") {
-    if (notification) console.log(notification);
     notification = new Notification(
       `Message from ${username}@${userDetails.room}`,
       {
