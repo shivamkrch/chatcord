@@ -20,8 +20,18 @@ const io = socketio(server);
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
 
+// Top selling games API
 app.get("/api/TopSellingGames", cors(), (req, res, next) => {
   return res.json(games);
+});
+
+app.get("/api/TopSellingGames/:rank", cors(), (req, res, next) => {
+  let rank = parseInt(req.params.rank);
+  let game = games.find((g) => g.Rank === rank);
+  if (game) {
+    return res.json(game);
+  }
+  return res.status(404).json({ msg: "Not found!" });
 });
 
 const botName = "ChatCord Bot";
