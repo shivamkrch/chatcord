@@ -1,14 +1,17 @@
 const path = require("path");
 const http = require("http");
 const express = require("express");
+const cors = require("cors");
 const socketio = require("socket.io");
 const formatMessage = require("./utils/messages");
 const {
   joinUser,
   getCurrentUser,
   userLeave,
-  getRoomUsers
+  getRoomUsers,
 } = require("./utils/users");
+
+const games = require("./games.json");
 
 const app = express();
 const server = http.createServer(app);
@@ -17,10 +20,14 @@ const io = socketio(server);
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/api/TopSellingGames", cors(), (req, res, next) => {
+  return res.json(games);
+});
+
 const botName = "ChatCord Bot";
 
 // When client connects
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   // Join room
   socket.on("joinRoom", ({ username, room }) => {
     const user = joinUser(socket.id, username, room);
@@ -44,12 +51,12 @@ io.on("connection", socket => {
     // Send users and room info
     io.to(user.room).emit("roomUsers", {
       room: user.room,
-      users: getRoomUsers(user.room)
+      users: getRoomUsers(user.room),
     });
   });
 
   // Listen for chat message
-  socket.on("chatMessage", msg => {
+  socket.on("chatMessage", (msg) => {
     const user = getCurrentUser(socket.id);
     io.to(user.room).emit("message", formatMessage(user.username, msg));
   });
@@ -73,7 +80,7 @@ io.on("connection", socket => {
       // Send users and room info
       io.to(user.room).emit("roomUsers", {
         room: user.room,
-        users: getRoomUsers(user.room)
+        users: getRoomUsers(user.room),
       });
     }
   });
